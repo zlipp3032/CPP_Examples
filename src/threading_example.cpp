@@ -20,7 +20,7 @@ using namespace std;
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
 
-
+/*
 uint64_t epoch_reltime_us()
 {
   using namespace std::chrono;
@@ -42,9 +42,99 @@ std::string GetTime()
   time_t sleep_time = chrono::system_clock::to_time_t(now_time);
   return  std::ctime(&sleep_time);
 }
+*/
+
+
+///////////////////////////////////////////////
+///////////////////////////////////////////////
+///////////////////////////////////////////////
+///////////////////////////////////////////////
+
+std::mutex vect_lock;
+std::vector<unsigned int> prime_vect;
+
+
+void FindPrimes(unsigned int start, unsigned int end)
+{
+  for(unsigned int x = start; x <= end; x += 2)
+    {
+      for(unsigned int y = 2; y < x; y++ )
+	{
+	  if((x % y) == 0)
+	    {
+	      break;
+	    } else if((y+1) == x)
+	    {
+	      vect_lock.lock();
+	      prime_vect.push_back(x);
+	      vect_lock.unlock();
+	    }
+	}
+    }
+}
+
+void PrimeThreads(unsigned int start, unsigned int end, unsigned int num_threads)
+{
+  std::vector<std::thread> threads;
+  unsigned int thread_spread = end / num_threads;
+  unsigned int new_end = start + thread_spread - 1;
+  for (unsigned int x = 0; x < num_threads; x++)
+    {
+      threads.emplace_back(FindPrimes, start, new_end);
+      start += thread_spread;
+      new_end += thread_spread;
+    }
+
+  for (auto& t: threads)
+    {
+      t.join();
+    }
+  
+}
 
 
 
+
+///////////////////////////////////////////////
+///////////////////////////////////////////////
+///////////////////////////////////////////////
+///////////////////////////////////////////////
+
+
+
+// Account Balance Example
+/*
+double acct_balance = 100; //global variable throughout this function
+std::mutex acct_lock; //prevents thread from accessing variables at the same time
+
+void GetMoney(int id, float withdrawal)
+{
+  std::lock_guard<std::mutex> lock(acct_lock);
+  std::this_thread::sleep_for(std::chrono::seconds(3));
+  std::cout << id << " tries to withdrawal $" << withdrawal << " on " << GetTime() << endl;
+
+  if ((acct_balance - withdrawal) >= 0)
+    {
+      acct_balance -= withdrawal;
+      std::cout << "New Account Balance: $" << acct_balance << endl;
+    } else
+    {
+      std::cout << "Insufficient Funds! Current Account Balance: $" << acct_balance << endl;
+    }
+  
+}
+
+*/
+
+
+///////////////////////////////////////////////
+///////////////////////////////////////////////
+///////////////////////////////////////////////
+///////////////////////////////////////////////
+
+
+// Playing around with time example
+/*
 void thread_fcn(int id)
 {
 
@@ -77,7 +167,7 @@ void thread_fcn(int id)
   
 }
 
-
+*/
 
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
@@ -91,6 +181,73 @@ void main_MultiThread(void)
   std::cout << "\n\n" << "-------------------------\n" << " Multi-Threading Example\n" << "-------------------------\n" << "\n\n";
 
 
+
+
+  // Prime method with threads
+  int start_time = clock();
+
+  PrimeThreads(1,100000, 3);
+
+  int end_time = clock();
+  for(auto i: prime_vect)
+    std::cout << i << endl;
+  std::cout << "Execution Time: " << (end_time - start_time)/double(CLOCKS_PER_SEC) << endl;
+
+
+  
+  // Prime method without threads
+  /*
+  std::vector<unsigned int> prime_vect;
+  int start_time = clock();
+
+  FindPrimes(1, 100000, prime_vect);
+  for(auto i: prime_vect)
+      std::cout << i << endl;
+  int end_time = clock();
+
+  std::cout << "Execution Time: " << (end_time - start_time)/double(CLOCKS_PER_SEC) << " seconds." <<  endl;
+  */
+  
+
+
+
+
+  
+  
+///////////////////////////////////////////////
+///////////////////////////////////////////////
+///////////////////////////////////////////////
+///////////////////////////////////////////////
+  
+
+  // Account Balance Example
+  /*
+  std::thread threads[10];
+  for (int i = 0; i<10; ++i)
+    {
+      threads[i] = std::thread(GetMoney, i, 15);
+    }
+
+
+
+   for (int i = 0; i<10; ++i)
+    {
+      threads[i].join();
+    }
+   */
+
+
+
+  
+///////////////////////////////////////////////
+///////////////////////////////////////////////
+///////////////////////////////////////////////
+///////////////////////////////////////////////
+
+  
+  
+// Playing around with time example
+/*
   std::thread th1 (thread_fcn, 1);
 
   th1.join();
@@ -99,15 +256,18 @@ void main_MultiThread(void)
 
   th2.join();
   
+*/
 
 
 
 
+  
+///////////////////////////////////////////////
+///////////////////////////////////////////////
+///////////////////////////////////////////////
+///////////////////////////////////////////////
 
-
-
-
-
+  // Timer with end_time defined before compilations
 
   
   /*
